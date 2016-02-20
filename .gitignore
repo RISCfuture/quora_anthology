@@ -1,0 +1,14 @@
+## Documentation cache and generated files:
+/.yardoc/
+/_yardoc/
+/doc/
+/rdoc/
+
+## Environment normalisation:
+/.bundle/
+
+## Project specific
+config/config.yml
+config/topics.csv
+config/sections.csv
+build/*

@@ -1,0 +1,79 @@
+\documentclass{book}
+\usepackage[a5paper]{geometry}
+\usepackage[russian,english]{babel}
+% Block quotes
+\usepackage{csquotes}
+% Images
+\usepackage{graphicx}
+% Links
+\usepackage{hyperref}
+% Placeholder Boxes
+\usepackage{tikz}
+% Index
+\usepackage{imakeidx}
+\makeindex[columns=1]
+\indexsetup{headers={}{},othercode=\footnotesize\pagestyle{index}}
+% Code
+\usepackage{listings}
+\lstset{
+    basicstyle=\small\ttfamily,
+    columns=flexible,
+    breaklines=true
+}
+% Special Characters
+\usepackage{flexisym}
+
+\raggedright
+\parindent0pt \parskip10pt
+
+\setcounter{tocdepth}{0}
+
+% don't show section numbers
+\makeatletter
+\def\@seccntformat#1{%
+  \expandafter\ifx\csname c@#1\endcsname\c@section\else
+  \csname the#1\endcsname\quad
+  \fi}
+\makeatother
+
+% show part and chapter titles in header
+\usepackage{titleps,etoolbox}
+\renewcommand{\parttitle}{}
+\newpagestyle{fancy}{%
+  \sethead  [\MakeUppercase{\parttitle}]%            even-left
+            []%                                      even-center
+            []%                              even-right
+            {}%                              odd-left
+            {}%                                      odd-center
+            {\MakeUppercase{\chaptername\ \thechapter.\ \chaptertitle}}%  odd-right
+  \setfoot[][][\thepage]{\thepage}{}{}
+}
+\newpagestyle{index}{%
+  \sethead  [Index]%            even-left
+            []%                                      even-center
+            []%                              even-right
+            {}%                              odd-left
+            {}%                                      odd-center
+            {Index}%  odd-right
+  \setfoot[][][\thepage]{\thepage}{}{}
+}
+
+\pagestyle{fancy}
+
+\title{\bf The Quora Anthology}
+\author{%name%}
+\date{}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+%content%
+
+\backmatter
+\printindex
+
+\end{document}
