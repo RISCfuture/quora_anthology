@@ -11,7 +11,8 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/dependencies/autoload'
 require 'active_support/concern'
-require 'action_view/helpers'
+require 'action_view/helpers/number_helper'
+require 'action_view/helpers/sanitize_helper'
 include ActionView::Helpers::NumberHelper
 include ActionView::Helpers::SanitizeHelper
 
@@ -77,7 +78,7 @@ class HTMLParser < Nokogiri::XML::SAX::Document
 
   def characters(string)
     if @math_mode
-      latex << string
+      latex << string.gsub("\\text{", "\\textrm{")
     else
       latex << escape_tex(string)
     end
@@ -195,7 +196,7 @@ class HTMLParser < Nokogiri::XML::SAX::Document
         latex << "\n\\begin{lstlisting}\n"
       when 'code'
         latex << "\\texttt{" unless @math_mode
-      when 'html', 'body'
+      when 'html', 'body', 'canvas'
       else
         latex << "<#{name} #{attrs.map { |(a, b)| "#{a}=\"#{b}\"" }.join(' ')}>"
     end
@@ -238,7 +239,7 @@ class HTMLParser < Nokogiri::XML::SAX::Document
         latex << "\n\\end{lstlisting}\n\n"
       when 'code'
         latex << "}" unless @math_mode
-      when 'html', 'body'
+      when 'html', 'body', 'canvas'
       else
         latex << "</#{name}>"
     end
@@ -271,8 +272,11 @@ class HTMLParser < Nokogiri::XML::SAX::Document
         FileUtils.mv "#{IMAGES_PATH}#{filename}", "#{IMAGES_PATH}#{filename}.#{extension}"
         if extension == 'gif'
           # first check if it's animated
+          p 1
           was_animated = `identify -format "%n" "#{IMAGES_PATH}#{filename}.gif`.to_i > 1
+          p 2
           system 'convert', "#{IMAGES_PATH}#{filename}.gif[0]", "#{IMAGES_PATH}#{filename}.png"
+          p 3
           return "#{IMAGES_PATH}#{filename}.png", was_animated
         end
         return "#{filename}.#{extension}", false

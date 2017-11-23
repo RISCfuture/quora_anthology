@@ -4,6 +4,7 @@ require 'active_support/core_ext/numeric/time'
 require './common'
 
 def translate_qtext(html)
+  return nil unless html
   out = html.dup
 
   # replace div.qtext_para with paragraphs
@@ -67,7 +68,7 @@ def translate_qtext(html)
     embed              = Nokogiri::XML::Node.new('embed', html)
     embed['type']      = div['data-video-provider']
     embed['src']       = div['data-yt-id']
-    embed['thumbnail'] = div['style'].match(/background: url\('(.+?)'\)/)[1]
+    embed['thumbnail'] = div['style'].match(/background(?:-image)?: url\('(.+?)'\)/)[1]
     div.add_next_sibling embed
     div.remove
   end
@@ -99,20 +100,21 @@ def translate_qtext(html)
   return out.children
 end
 
-def parse_file(file)
+def parse_file(file, q_file)
   html = Nokogiri::HTML(File.read(file))
+  q_html = Nokogiri::HTML(File.read(q_file)) if File.exist?(q_file)
 
-  return unless html.css('span.question_text span.rendered_qtext').first # for some reason one of my answers became a review??
+  return nil unless html.css('span.question_text span.rendered_qtext').first # for some reason one of my answers became a review??
 
-  title       = translate_qtext(html.css('span.question_text span.rendered_qtext').first)
-  description = translate_qtext(html.css('div.question_details span.rendered_qtext').first || '').presence
-  answer      = translate_qtext(html.css('div.ExpandedAnswer span.rendered_qtext').first || '').presence
-  upvotes     = if (node = html.css('a.AnswerUpvotesStatsRow strong').first)
-                  node.text.gsub(',', '').to_i
+  title       = translate_qtext(html.css('h1 span.QuestionText span.rendered_qtext').first) or return nil # question redirect
+  description = translate_qtext(html.css('div.question_details span.rendered_qtext').first).presence
+  answer      = translate_qtext(html.css('div.ExpandedAnswer span.rendered_qtext').first).presence
+  upvotes     = if (node = html.css('a.VoterListModalLink.AnswerVoterListModalLink').first)
+                  node.text.match(/^(\d+)/)[1].to_i
                 else
                   0
                 end
-  date_str    = html.css('div.AnswerFooter a.answer_permalink').first.text.sub(/^(Written|Updated) /, '').sub(/ ago$/, '')
+  date_str    = html.css('div.AnswerHeader a.answer_permalink').first.text.sub(/^(Written|Updated) /, '').sub(/ ago$/, '')
   date        = if date_str =~ /(\d+)w/
                   $1.to_i.weeks.ago.to_date
                 elsif date_str =~ /(\d+)d/
@@ -122,10 +124,13 @@ def parse_file(file)
                 end
   permalink   = html.css('a.answer_permalink').first['href']
 
-  topics = html.css('div.TopicList span.TopicName').map(&:text)
+  topics = q_html ? q_html.css('div.TopicList span.TopicName').map(&:text) : []
 
   return Answer.new(title, description, answer, upvotes, date, topics, permalink)
 end
 
-answers = Dir.glob('build/answers/*.html').map { |file| parse_file file }.compact
+answers = Dir.glob('build/answers/*.html').map do |file|
+  next if File.basename(file).start_with?('q-')
+  parse_file file, file.sub(/(\d+)\.html$/, "q-\\1.html")
+end.compact
 File.open('build/answers.json', 'w') { |f| f.puts JSON.pretty_generate(answers) }

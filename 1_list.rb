@@ -17,8 +17,8 @@ Watir::Wait.until { browser.form(class: 'inline_login_form').button(type: 'submi
 browser.form(class: 'inline_login_form').submit
 
 puts "Going to answers..."
-browser.a(text: 'Your Content').when_present.click
-browser.a(text: 'Answers').when_present.click
+browser.a(text: 'Your Content').wait_until_present.click
+browser.a(text: 'Answers').wait_until_present.click
 
 puts "Loading answers..."
 count      = browser.elements(css: 'a.question_link').count

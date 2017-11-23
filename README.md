@@ -8,7 +8,7 @@ and ideal for reading in print or eBook form.
 
 The Anthology Generator requires the following:
 
-* A modern version of Ruby (2.3.0 is targeted);
+* A modern version of Ruby (2.4.2 is targeted);
 * A TeX installation with XeTeX support, the `book` layout, and the following
   packages: `csquotes`, `graphicx`, `babel`, `tikz`, `imakeindex`, and
   `hyperref`;
@@ -84,7 +84,7 @@ feature stops and you have all of your past answers displayed on the page at
 once. Open up a console window and type the following:
 
 ```` javascript
-console.log($('a.question_link').map(function() { return $(this).attr('href') }).toArray().join("\n"));
+ls = []; document.querySelectorAll('a.question_link').forEach(function(a) { ls.push(a.getAttribute('href')) }); console.log(ls.join("\n"))
 ````
 
 Place the output in a text file at `build/answer_urls.txt`.
